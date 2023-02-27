@@ -1,0 +1,108 @@
+---
+title: "Introduction to R"
+---
+
+R is an open-source programming language for statistical computing and graphics. R is extensible, and has a large collection of high-quality user contributed packages that provides easy tools for common data analysis tasks. This mini-course will introduce you the fundamentals of R programming with a focus on data management, data visualization and quantitative finance applications in R.
+
+------------------------------------------------------------------------
+
+### What To Prepare
+
+- Please install [R](https://www.r-project.org/) and [RStudio Desktop](https://rstudio.com/products/rstudio/download/) before the first session.
+
+  RStudio is the most popular IDE (Integrated Development Environment) for R. Most people use RStudio if they want to write some R code.
+
+  If you encounter technical difficulties installing the software, you can instead create a free [RStudio Cloud](https://rstudio.cloud/) account so you can run R and RStudio in the cloud via your browser.
+  
+  An alternative to RStudio Cloud is the UofT JupyterHub/RStudio system. Go to its [home page](https://jupyter.utoronto.ca/hub/login), choose the *RStudio* option, and click *Log in to start*. You will need your UTORid.
+
+- We will also use [Google Colab](https://colab.to/r), and I assume you all have a Google account.
+  
+  Google Colab lets you combine code and notes in a "notebook". It is a great setup to get started with R programming.
+
+  UofT JupyterHub offers a similar notebook setting. Go to its [home page](https://jupyter.utoronto.ca/hub/login), choose the *Jupyter Notebook* option, and click *Log in to start*. You will need your UTORid.
+
+------------------------------------------------------------------------
+
+### Part 1 (Overview & Basics)
+
+- Slides (*coming soon*)
+- Motivation Examples
+  - Analyze portfolio performance (R Script: [performance_analysis.R](session_1/performance_analysis.R))
+  - Perform simple sentiment analysis on earning call transcripts (R script: [earning_call.R](session_1/earning_call.R); [Word Cloud](session_1/msft_word_cloud.html))
+  - Recognize handwritten digits, a deep learning ["Hello World" example](https://tensorflow.rstudio.com/tutorials/beginners/)
+    - R script 1 (using [Tensorflow for R](https://tensorflow.rstudio.com/)): [dl_hello_world.R](session_1/dl_hello_world.R)
+    - R script 2 (using [Torch for R](https://torch.mlverse.org/)): [dl_hello_world_torch.R](session_1/dl_hello_world_torch.R)
+- Basic Data and Programming Structures
+  -   Data structures (R Notebook [![](colab-badge.svg)](https://colab.research.google.com/github/tdmdal/r-workshop-202223-winter/blob/master/docs/session_1/R_Basic_Data_Structures.ipynb))
+    -   Programming structures (R Notebook [![](colab-badge.svg)](https://colab.research.google.com/github/tdmdal/r-workshop-202223-winter/blob/master/docs/session_1/R_Basic_Programming_Structures.ipynb))
+- A Regression Example (Housing prices and clean air)
+  - Linear Regression - Base R (R Notebook [![](colab-badge.svg)](https://colab.research.google.com/github/tdmdal/r-workshop-202223-winter/blob/master/docs/session_1/Housing_Prices_Regression_Analysis_(with_base_R).ipynb))
+  - Linear Regression - Tidyverse & Others (R Notebook [![](colab-badge.svg)](https://colab.research.google.com/github/tdmdal/r-workshop-202223-winter/blob/master/docs/session_1/Housing_Prices_Regression_Analysis_(with_Tidyverse_and_Others).ipynb))
+    - Data Import
+    - Data Manipulation
+    - Modelling
+    - Report ([sample regression report](session_1/result.html))
+
+- Additional materials on data and programming structures (from past workshops; optional)
+  - Data structures
+    - [Vectors](extra_material/part1_1_vector.html)
+    - [Derived data structures](extra_material/part1_2_derived_ds.html)
+  - [Programming structures](extra_material/part1_3_function.html)
+
+- Reading list
+  - [R for Data Science](https://r4ds.had.co.nz/) (Chapter 1 Intro, 4 Workflow: basics, 5 Data transformation, 6 Workflow: scripts, 8 Workflow: projects, 10 Tibbles, 11 Data import, 18 Pipes, 19 Functions, 20 Vectors, and 21 Iteration.)
+
+
+### Part 2
+
+- *coming soon*
+
+
+### Part 3
+
+- *coming soon*
+
+
+### Part 4
+
+- *coming soon*
+
+
+------------------------------------------------------------------------
+
+### Resources
+
+- From Zero to Hero
+  - Step 1: [Hands-on Programming with R](https://rstudio-education.github.io/hopr/) (never programmed before; start from scratch)
+  - Step 2: [R for Data Science](https://r4ds.had.co.nz/) (Data science with R's Tidyverse eco-system. Work in progress 2ed [here](https://r4ds.hadley.nz/).)
+  - Step 3: [Advanced R](https://adv-r.hadley.nz/) (master R)
+
+- R Graphics
+  - [R Graphics Cookbook](https://r-graphics.org/)
+  - [ggplot2: Elegant Graphics for Data Analysis](https://ggplot2-book.org/)
+  - [The R Graph Gallery](https://www.r-graph-gallery.com/) (R graph samples with code)
+
+- R and Econometrics
+  - [Tidy Finance with R](https://www.tidy-finance.org/index.html)
+  - [Introduction to Econometrics with R](https://www.econometrics-with-r.org/)
+  - Forecasting: Principles and Practice ([2nd ed.](https://otexts.com/fpp2/); [3rd ed.](https://otexts.com/fpp3/))
+  - [Financial Engineering Analytics: A Practice Manual Using R](https://bookdown.org/wfoote01/faur/)
+
+- R and Machine Learning
+  - [An Introduction to Statistical Learning / with Applications in R](https://www.statlearning.com/) (you can download the book and its R code)
+  - [Tensorflow for R](https://tensorflow.rstudio.com/) (deep learning with R)
+  - [Torch for R](https://torch.mlverse.org/) (deep learning with R)
+        
+- Others
+  - [A Short R Tutorial](https://data.princeton.edu/R) by Germán Rodríguez
+  - [Introductory Econometrics Examples](https://justinmshea.github.io/wooldridge/articles/Introductory-Econometrics-Examples.html) (data and examples from Wooldridge)
+  - [STAT545](https://stat545.com/) by [Jenny Bryan](https://jennybryan.org/) : Data wrangling, exploration, and analysis with R
+  - [Programming with R](https://swcarpentry.github.io/r-novice-inflammation/) (from [software carpentry](https://software-carpentry.org/))
+  - [DoSStoolkit](https://dosstoolkit.com/) (self-paced interactive learning modules from Uoft Dept. of Statistical Science)
+  - [R Cheat Sheets](https://www.rstudio.com/resources/cheatsheets/) (cheat sheets for many popular R packages)
+  - Many more R books [here](https://bookdown.org/)
+
+------------------------------------------------------------------------
+
+Back to [TDMDAL Computing Page](https://tdmdal.github.io/)

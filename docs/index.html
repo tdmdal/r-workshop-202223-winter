@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.269">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Intro to R - Winter 2023 - Introduction to R</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Intro to R - Winter 2023</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="./index.html" aria-current="page">
+ <span class="menu-text">Home</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#what-to-prepare" id="toc-what-to-prepare" class="nav-link active" data-scroll-target="#what-to-prepare">What To Prepare</a></li>
+  <li><a href="#part-1-overview-basics" id="toc-part-1-overview-basics" class="nav-link" data-scroll-target="#part-1-overview-basics">Part 1 (Overview &amp; Basics)</a></li>
+  <li><a href="#part-2" id="toc-part-2" class="nav-link" data-scroll-target="#part-2">Part 2</a></li>
+  <li><a href="#part-3" id="toc-part-3" class="nav-link" data-scroll-target="#part-3">Part 3</a></li>
+  <li><a href="#part-4" id="toc-part-4" class="nav-link" data-scroll-target="#part-4">Part 4</a></li>
+  <li><a href="#resources" id="toc-resources" class="nav-link" data-scroll-target="#resources">Resources</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Introduction to R</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<p>R is an open-source programming language for statistical computing and graphics. R is extensible, and has a large collection of high-quality user contributed packages that provides easy tools for common data analysis tasks. This mini-course will introduce you the fundamentals of R programming with a focus on data management, data visualization and quantitative finance applications in R.</p>
+<hr>
+<section id="what-to-prepare" class="level3">
+<h3 class="anchored" data-anchor-id="what-to-prepare">What To Prepare</h3>
+<ul>
+<li><p>Please install <a href="https://www.r-project.org/">R</a> and <a href="https://rstudio.com/products/rstudio/download/">RStudio Desktop</a> before the first session.</p>
+<p>RStudio is the most popular IDE (Integrated Development Environment) for R. Most people use RStudio if they want to write some R code.</p>
+<p>If you encounter technical difficulties installing the software, you can instead create a free <a href="https://rstudio.cloud/">RStudio Cloud</a> account so you can run R and RStudio in the cloud via your browser.</p>
+<p>An alternative to RStudio Cloud is the UofT JupyterHub/RStudio system. Go to its <a href="https://jupyter.utoronto.ca/hub/login">home page</a>, choose the <em>RStudio</em> option, and click <em>Log in to start</em>. You will need your UTORid.</p></li>
+<li><p>We will also use <a href="https://colab.to/r">Google Colab</a>, and I assume you all have a Google account.</p>
+<p>Google Colab lets you combine code and notes in a “notebook”. It is a great setup to get started with R programming.</p>
+<p>UofT JupyterHub offers a similar notebook setting. Go to its <a href="https://jupyter.utoronto.ca/hub/login">home page</a>, choose the <em>Jupyter Notebook</em> option, and click <em>Log in to start</em>. You will need your UTORid.</p></li>
+</ul>
+<hr>
+</section>
+<section id="part-1-overview-basics" class="level3">
+<h3 class="anchored" data-anchor-id="part-1-overview-basics">Part 1 (Overview &amp; Basics)</h3>
+<ul>
+<li>Slides (<em>coming soon</em>)</li>
+<li>Motivation Examples
+<ul>
+<li>Analyze portfolio performance (R Script: <a href="session_1/performance_analysis.R">performance_analysis.R</a>)</li>
+<li>Perform simple sentiment analysis on earning call transcripts (R script: <a href="session_1/earning_call.R">earning_call.R</a>; <a href="session_1/msft_word_cloud.html">Word Cloud</a>)</li>
+<li>Recognize handwritten digits, a deep learning <a href="https://tensorflow.rstudio.com/tutorials/beginners/">“Hello World” example</a>
+<ul>
+<li>R script 1 (using <a href="https://tensorflow.rstudio.com/">Tensorflow for R</a>): <a href="session_1/dl_hello_world.R">dl_hello_world.R</a></li>
+<li>R script 2 (using <a href="https://torch.mlverse.org/">Torch for R</a>): <a href="session_1/dl_hello_world_torch.R">dl_hello_world_torch.R</a></li>
+</ul></li>
+</ul></li>
+<li>Basic Data and Programming Structures
+<ul>
+<li>Data structures (R Notebook <a href="https://colab.research.google.com/github/tdmdal/r-workshop-202223-winter/blob/master/docs/session_1/R_Basic_Data_Structures.ipynb"><img src="colab-badge.svg" class="img-fluid"></a>)</li>
+<li>Programming structures (R Notebook <a href="https://colab.research.google.com/github/tdmdal/r-workshop-202223-winter/blob/master/docs/session_1/R_Basic_Programming_Structures.ipynb"><img src="colab-badge.svg" class="img-fluid"></a>)</li>
+</ul></li>
+<li>A Regression Example (Housing prices and clean air)
+<ul>
+<li>Linear Regression - Base R (R Notebook <a href="https://colab.research.google.com/github/tdmdal/r-workshop-202223-winter/blob/master/docs/session_1/Housing_Prices_Regression_Analysis_(with_base_R).ipynb"><img src="colab-badge.svg" class="img-fluid"></a>)</li>
+<li>Linear Regression - Tidyverse &amp; Others (R Notebook <a href="https://colab.research.google.com/github/tdmdal/r-workshop-202223-winter/blob/master/docs/session_1/Housing_Prices_Regression_Analysis_(with_Tidyverse_and_Others).ipynb"><img src="colab-badge.svg" class="img-fluid"></a>)
+<ul>
+<li>Data Import</li>
+<li>Data Manipulation</li>
+<li>Modelling</li>
+<li>Report (<a href="session_1/result.html">sample regression report</a>)</li>
+</ul></li>
+</ul></li>
+<li>Additional materials on data and programming structures (from past workshops; optional)
+<ul>
+<li>Data structures
+<ul>
+<li><a href="extra_material/part1_1_vector.html">Vectors</a></li>
+<li><a href="extra_material/part1_2_derived_ds.html">Derived data structures</a></li>
+</ul></li>
+<li><a href="extra_material/part1_3_function.html">Programming structures</a></li>
+</ul></li>
+<li>Reading list
+<ul>
+<li><a href="https://r4ds.had.co.nz/">R for Data Science</a> (Chapter 1 Intro, 4 Workflow: basics, 5 Data transformation, 6 Workflow: scripts, 8 Workflow: projects, 10 Tibbles, 11 Data import, 18 Pipes, 19 Functions, 20 Vectors, and 21 Iteration.)</li>
+</ul></li>
+</ul>
+</section>
+<section id="part-2" class="level3">
+<h3 class="anchored" data-anchor-id="part-2">Part 2</h3>
+<ul>
+<li><em>coming soon</em></li>
+</ul>
+</section>
+<section id="part-3" class="level3">
+<h3 class="anchored" data-anchor-id="part-3">Part 3</h3>
+<ul>
+<li><em>coming soon</em></li>
+</ul>
+</section>
+<section id="part-4" class="level3">
+<h3 class="anchored" data-anchor-id="part-4">Part 4</h3>
+<ul>
+<li><em>coming soon</em></li>
+</ul>
+<hr>
+</section>
+<section id="resources" class="level3">
+<h3 class="anchored" data-anchor-id="resources">Resources</h3>
+<ul>
+<li>From Zero to Hero
+<ul>
+<li>Step 1: <a href="https://rstudio-education.github.io/hopr/">Hands-on Programming with R</a> (never programmed before; start from scratch)</li>
+<li>Step 2: <a href="https://r4ds.had.co.nz/">R for Data Science</a> (Data science with R’s Tidyverse eco-system. Work in progress 2ed <a href="https://r4ds.hadley.nz/">here</a>.)</li>
+<li>Step 3: <a href="https://adv-r.hadley.nz/">Advanced R</a> (master R)</li>
+</ul></li>
+<li>R Graphics
+<ul>
+<li><a href="https://r-graphics.org/">R Graphics Cookbook</a></li>
+<li><a href="https://ggplot2-book.org/">ggplot2: Elegant Graphics for Data Analysis</a></li>
+<li><a href="https://www.r-graph-gallery.com/">The R Graph Gallery</a> (R graph samples with code)</li>
+</ul></li>
+<li>R and Econometrics
+<ul>
+<li><a href="https://www.tidy-finance.org/index.html">Tidy Finance with R</a></li>
+<li><a href="https://www.econometrics-with-r.org/">Introduction to Econometrics with R</a></li>
+<li>Forecasting: Principles and Practice (<a href="https://otexts.com/fpp2/">2nd ed.</a>; <a href="https://otexts.com/fpp3/">3rd ed.</a>)</li>
+<li><a href="https://bookdown.org/wfoote01/faur/">Financial Engineering Analytics: A Practice Manual Using R</a></li>
+</ul></li>
+<li>R and Machine Learning
+<ul>
+<li><a href="https://www.statlearning.com/">An Introduction to Statistical Learning / with Applications in R</a> (you can download the book and its R code)</li>
+<li><a href="https://tensorflow.rstudio.com/">Tensorflow for R</a> (deep learning with R)</li>
+<li><a href="https://torch.mlverse.org/">Torch for R</a> (deep learning with R)</li>
+</ul></li>
+<li>Others
+<ul>
+<li><a href="https://data.princeton.edu/R">A Short R Tutorial</a> by Germán Rodríguez</li>
+<li><a href="https://justinmshea.github.io/wooldridge/articles/Introductory-Econometrics-Examples.html">Introductory Econometrics Examples</a> (data and examples from Wooldridge)</li>
+<li><a href="https://stat545.com/">STAT545</a> by <a href="https://jennybryan.org/">Jenny Bryan</a> : Data wrangling, exploration, and analysis with R</li>
+<li><a href="https://swcarpentry.github.io/r-novice-inflammation/">Programming with R</a> (from <a href="https://software-carpentry.org/">software carpentry</a>)</li>
+<li><a href="https://dosstoolkit.com/">DoSStoolkit</a> (self-paced interactive learning modules from Uoft Dept. of Statistical Science)</li>
+<li><a href="https://www.rstudio.com/resources/cheatsheets/">R Cheat Sheets</a> (cheat sheets for many popular R packages)</li>
+<li>Many more R books <a href="https://bookdown.org/">here</a></li>
+</ul></li>
+</ul>
+<hr>
+<p>Back to <a href="https://tdmdal.github.io/">TDMDAL Computing Page</a></p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

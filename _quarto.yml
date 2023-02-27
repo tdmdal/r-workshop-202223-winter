@@ -1,0 +1,25 @@
+project:
+  type: website
+  output-dir: docs
+  render: 
+    - "*.qmd"
+  resources:
+    - "*.ipynb"
+
+website:
+  title: "Intro to R - Winter 2023"
+  search: false
+  navbar:
+    right:
+      - text: Home
+        file: index.qmd
+
+format:
+  html:
+    theme: united
+    css: styles.css
+    toc: true
+    fontsize: 95%
+
+editor: visual
+
