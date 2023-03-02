@@ -26,7 +26,7 @@ R is an open-source programming language for statistical computing and graphics.
 
 ### Part 1 (Overview & Basics)
 
-- Slides (*coming soon*)
+- [Slides](r_intro.pdf)
 - Motivation Examples
   - Analyze portfolio performance (R Script: [performance_analysis.R](session_1/performance_analysis.R))
   - Perform simple sentiment analysis on earning call transcripts (R script: [earning_call.R](session_1/earning_call.R); [Word Cloud](session_1/msft_word_cloud.html))
@@ -36,7 +36,7 @@ R is an open-source programming language for statistical computing and graphics.
 - Basic Data and Programming Structures
   -   Data structures (R Notebook [![](colab-badge.svg)](https://colab.research.google.com/github/tdmdal/r-workshop-202223-winter/blob/master/docs/session_1/R_Basic_Data_Structures.ipynb))
     -   Programming structures (R Notebook [![](colab-badge.svg)](https://colab.research.google.com/github/tdmdal/r-workshop-202223-winter/blob/master/docs/session_1/R_Basic_Programming_Structures.ipynb))
-- A Regression Example (Housing prices and clean air)
+- Data Science Workflow - A Regression Example (Housing prices and clean air)
   - Linear Regression - Base R (R Notebook [![](colab-badge.svg)](https://colab.research.google.com/github/tdmdal/r-workshop-202223-winter/blob/master/docs/session_1/Housing_Prices_Regression_Analysis_(with_base_R).ipynb))
   - Linear Regression - Tidyverse & Others (R Notebook [![](colab-badge.svg)](https://colab.research.google.com/github/tdmdal/r-workshop-202223-winter/blob/master/docs/session_1/Housing_Prices_Regression_Analysis_(with_Tidyverse_and_Others).ipynb))
     - Data Import
