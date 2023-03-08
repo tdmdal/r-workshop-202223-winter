@@ -54,9 +54,13 @@ R is an open-source programming language for statistical computing and graphics.
   - [R for Data Science](https://r4ds.had.co.nz/) (Chapter 1 Intro, 4 Workflow: basics, 5 Data transformation, 6 Workflow: scripts, 8 Workflow: projects, 10 Tibbles, 11 Data import, 18 Pipes, 19 Functions, 20 Vectors, and 21 Iteration.)
 
 
-### Part 2
+### Part 2 (Data Manipulation)
 
-- *coming soon*
+- [Slides](r_data_manipulation.pdf)
+- Code
+  - Data Manipulation (R notebook: [![](colab-badge.svg)](https://colab.research.google.com/github/tdmdal/r-workshop-202223-winter/blob/master/docs/session_2/part2_data_manipulation.ipynb))
+- Reading list
+  - [R for Data Science](https://r4ds.had.co.nz/) (Chapter 5 Data transformation, 12 Tidy data, and 13 Relational data.)
 
 
 ### Part 3
