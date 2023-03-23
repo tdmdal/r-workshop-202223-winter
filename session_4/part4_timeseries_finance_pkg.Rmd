@@ -1,0 +1,482 @@
+---
+title: "Intro to R Time Series (and a few Finance Packages)"
+author: "Jay Cao"
+date: "March 20, 2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE)
+```
+
+## 1. Introduction
+
+How would you store a time series dataset in R? Given the data structures we have seen so far, you can store it in at least two ways.
+
+1. store it as a vector or matrix (name or rowname can be used for timestamps if needed)
+2. store it as a dataframe/tibble (timestamps can be a column variable).
+
+These are both reasonable ways of storing time series. However, more than just storing time series data, we also need to process them efficiently, i.e. we need associated time-aware functions that can process time series (e.g. taking lags and differences, subsetting based on time, etc.). That's why people working with time series in R tend to use specialized time-series data structures. Just like matrices and dataframes, they are built upon basic data structures together with special attributes and tailored functions/methods for time series. Several time series classes(/data structures) are popular and widely supported by many econometrics and finance packages. See CRAN [time series task view](https://cran.r-project.org/web/views/TimeSeries.html) for details.
+
+1. `ts` class. `ts` is a class for equi-spaced time series using numeric timestamps. It's supported in base R (out-of-the-box R)
+2. `zoo` class. `zoo` provides infrastructure for regular- and irregular-spaced time series using arbitrary classes for the timestamps (there are many R classes for dates and times)
+3. `xts` class. `xts` extends `zoo`. It provides uniform handling of R's time-based data classes.
+4. many more classes such as `timeSeries` in [timeSeries](https://cran.r-project.org/web/packages/timeSeries/timeSeries.pdf) package, `tis` in [tis](https://cran.r-project.org/web/packages/tis/tis.pdf) package, etc.
+5. recently, tibble-like time series classes and associated packages started to gain attraction, for example, the `tsibble` class from [tsibble](https://tsibble.tidyverts.org/) package. The tsibble package in turn belongs to a big family of time series toolsets called [tidyverts](https://tidyverts.org/). (Recall `tibble` is almost like `dataframe`, and it's the data structure used by the Tidyverse eco-system.)
+6. "time-aware" tibble. This is the approach the [tidyquant](https://business-science.github.io/tidyquant/index.html) package takes. Tidyquant uses `tibble` as its main data structure, but it makes `tibble` "time-aware" whenever needed. For example, it converts tibble to `xts` when doing portfolio performance analysis as the underlying function call is taken from [PerformanceAnalytics](https://github.com/braverock/PerformanceAnalytics) package, which operates on `xts` data structure.
+
+I will leave you to learn the (5) and (6) above on your own as they both follow the tidyverse principle, which you are already familiar with.
+
+In this notebook, I will (briefly) discuss `ts` and `xts` classes. They are the core data structures used by many wonderful time series and finance R packages. You will see that the way we operate on `ts` and `xts` objects is quite different from what we learned so far, i.e. the `tidyverse` way of manipulating dataframes/tibbles. Along learning `ts` and `xts`, we will also get a chance to check out a few useful R packages for time series and financial analysis, namely [forecast](https://pkg.robjhyndman.com/forecast/), [quantmod](https://www.quantmod.com/), [PerformanceAnalytics](https://github.com/braverock/PerformanceAnalytics), and [RQuantLib](http://dirk.eddelbuettel.com/code/rquantlib.html).
+
+Note: Although the [forecast](https://pkg.robjhyndman.com/forecast/) package is now retired in favour of the [fable](http://fable.tidyverts.org/) package, which works with `tsibble` (see 5 above), that doesn't mean the `xts` data structure is retired. We use the [forecast](https://pkg.robjhyndman.com/forecast/) package here to learn `xts`. In any case, [forecast](https://pkg.robjhyndman.com/forecast/) is still a great R package nevertheless.
+
+## 2. `ts` class (and `forecast` package).
+
+### 2.1. Basics
+
+`ts` is a basic class for equi-spaced time series supported by base R. Essentially, it's a vector or matrix with class attribute of "ts" (and an additional attribute). In the matrix case, each column is assumed to contain a single univariate time series. A `ts` object concisely stores the time series index using three "time series parameters" (tsp): `start`, `end`, and `frequency`.
+
+We can create a `ts` object using the `ts()` function.
+
+```{r}
+ts_obj <- ts(1:10, frequency = 4, start = c(2017, 2)) # 2nd Quarter of 1917
+ts_obj
+```
+
+Take a look at `ts` data structure
+
+```{r}
+# take a look at the data structure
+print(typeof(ts_obj))
+print(class(ts_obj))
+print(attributes(ts_obj))
+str(ts_obj)
+```
+
+In most cases, you will load data from an external source (files or online data). Let's load a time series dataset (stored online) and turn it into `ts`. The dataset records the number of births per month in New York city, from January 1946 to December 1959.
+
+```{r}
+# scan() is a base R function to read data into a vector or list.
+birth <- scan("http://robjhyndman.com/tsdldata/data/nybirths.dat")
+birth_ts <- ts(birth, frequency = 12, start = c(1946, 1))
+birth_ts
+```
+
+```{r}
+class(birth_ts)
+```
+### 2.2 `ts`-aware base R functions
+
+We can process and analyze `ts` objects just by using base R functions. Let's try a few of them.
+
+```{r}
+# plot the time series
+plot(birth_ts)
+```
+
+`plot()` is a generic function that plots different graphs depending on its input. The `plot()` here actually invokes `plot.ts()`, the plotting method for `ts` objects.
+
+```{r}
+# plot the first difference of birth_ts
+plot.ts(diff(birth_ts))
+```
+
+```{r}
+# time() create a vector of time from the time series
+time(birth_ts)
+```
+
+```{r}
+# subset the series to make it start from 1947 (this is just to show you how to slice a ts)
+# plot the new series and add a regression line (y is birth_ts_start1947 and x is time)
+birth_ts_start1947 <- window(birth_ts, start = 1947)
+plot(birth_ts_start1947)
+abline(reg = lm(birth_ts_start1947 ~ time(birth_ts_start1947)))
+```
+
+```{r}
+# print out the cycle of the time series
+cycle(birth_ts)
+```
+
+```{r}
+# find mean number of births by year and display the year on year trend
+# type = "b" mean plot both point and line
+plot(aggregate(birth_ts, FUN = mean), type = "b")
+```
+
+```{r}
+# acf of the series
+acf(birth_ts)
+```
+
+ACF - Autocorrelation Function. ACF calculates the correlation of a time series with its own lagged values. (see [here](https://nwfsc-timeseries.github.io/atsa-labs/sec-ts-correlation-within-and-among-time-series.html#sec-ts-autocorrelation-function-acf))
+
+The above plot starts with lag 0, and then lag 1, 2 and so on. The x-axis is in year unit, i.e., 1 is 12th/1-year lag.
+
+The ACF of our birth time series decreases slowly because it is not stationary. (It has an obvious upward trend and seasonality.)
+
+You can plot PACF easily using pacf() function.
+
+```{r}
+# pacf on the series
+pacf(diff(birth_ts))
+```
+
+PACF - Partial ACF. PACF "gives the partial correlation of a time series with its own lagged values, controlling for the values of the time series at all shorter lags." ([wiki](https://en.wikipedia.org/wiki/Partial_autocorrelation_function).
+
+The above plot starts with lag 1, and then lag 2, 3 and so on. The x-axis is in year unit, i.e., 1 is 12th/1-year lag.
+
+ACF and PACF help identify parameters for time series models, e.g., p, i, q in AR(p), MA(q), or ARIMA(p, i, q) model.
+
+### 2.3. the `forecast` package
+
+From the early time-series plot, we see the series has
+
+1. an upward year-by-year trend
+2. a seasonal component with cycle of 1 year
+3. a relatively stable variance over time
+
+Let's fit the series with a seasonal ARIMA model `arima(p, i, q)(P, I, Q)[S]`. Instead of manually identify the model parameters (through ACF and PACF graphs) and fit the model using base R functions, we will use the `auto.arima()` function from the  `forcast` package.
+
+```{r}
+library(forecast)
+# fit a seasonal ARIMA model arima(p, i, q)(P, I, Q)[S]
+fit <- auto.arima(birth_ts, approximation = FALSE)
+fit
+```
+
+Predict based on the fitted model.
+
+```{r}
+# predict 36 months ahead
+pred <- forecast(fit, h = 36)
+autoplot(pred)
+```
+
+We can chain the process using pipe operator (`%>%`) as well.
+
+```{r}
+birth_ts %>%
+  auto.arima(approximation = FALSE) %>%
+  forecast(h = 36) %>%
+  autoplot()
+```
+
+Decomposing and visualizing trend, seasonality, and remaining errors can be done easily using base R `decompose()` and forecast package's `autoplot()`.
+
+```{r}
+birth_ts %>%
+  decompose(type="multiplicative") %>% 
+  autoplot()
+```
+
+You certainly should read `forecast` package document to understand the theory behind `auto.arima()` and `decompose()`.
+
+1. forecast package [website](http://pkg.robjhyndman.com/forecast/)
+2. [Automatic Time Series Forcasting: the forecast Package for R](https://cran.r-project.org/web/packages/forecast/vignettes/JSS2008.pdf)
+3. [Classical decomposition](https://otexts.com/fpp2/classical-decomposition.html) chapter in the book [Forecasting: Principles and Practice](https://otexts.com/fpp2/).
+
+Forecast package has many more useful functions (e.g. better ACF and PACF plots), I'll leave you to explore them on your own.
+
+## 3. `zoo` and `xts` classes (and `quantmod` & `PerformanceAnalytics` packages)
+
+### 3.1. Basics
+
+`zoo` can handle regular- and irregular-spaced time series using arbitrary classes for timestamps. `xts` extends `zoo`. The main benefit of `xts` is its seamless compatibility with other packages using different time-series classes (`timeSeries`, `zoo`, ...)." (see `xts` [faq](https://cran.r-project.org/web/packages/xts/vignettes/xts-faq.pdf).)
+
+You can think of `xts` object as a matrix plus a time index.
+
+```{r}
+library(xts)
+
+# create a 3x2 matrix
+x <- matrix(1:6, ncol = 2)
+print(x)
+
+# create time index
+idx <- as.Date(c("2019-01-01", "2019-01-02", "2019-01-05"))
+print(idx)
+
+# create an xts objet
+xts_obj <- xts(x, order.by = idx)
+xts_obj
+```
+
+Let's take a look at the `xts` data structure.
+
+```{r}
+print(typeof(xts_obj))
+print(class(xts_obj))
+```
+
+```{r}
+str(xts_obj)
+```
+
+```{r}
+attributes(xts_obj)
+```
+
+Type `?xts` in the R console to see other options in the `xts()` function/constructor.
+
+You can get back the matrix and time index in an xts object by deconstructing it.
+
+```{r}
+# coredata() extracts the matrix
+coredata(xts_obj)
+```
+
+```{r}
+# index() extracts the time index
+index(xts_obj)
+```
+
+Again, in most cases, you will load your data from external sources. Let's load the same New York City birth data, and turn it into an xts object.
+
+```{r}
+# scan() is a base R function to read data into a vector or list.
+birth <- scan("http://robjhyndman.com/tsdldata/data/nybirths.dat")
+
+# first turn it to ts. ts constructor only need start and frequecy inputs so it's easy. 
+birth_ts <- ts(birth, frequency = 12, start = c(1946, 1))
+
+# now turn it to xts using the as.xts() function
+birth_xts <- as.xts(birth_ts)
+head(birth_xts)
+```
+
+To deal with irregular spaced time series, you can first import the data using `zoo.read()` and obtain a `zoo` object and then turn the `zoo` object into `xts` object using `as.xts()`.
+
+```{r}
+msft_zoo <- read.zoo("https://raw.githubusercontent.com/eijoac/datasets/master/msft_stock.csv", 
+                     index.column = 1, sep = ",", format = "%Y-%m-%d",
+                     read = read.csv)
+msft_xts <- as.xts(msft_zoo)
+head(msft_xts)
+
+# you can export an xts object to a csv file using write.zoo() as xts object is a zoo object as well
+# write.zoo(msft_xts, sep = ",", file = "msft_stock.csv")
+```
+
+The point of having a special data structure `xts` is not just to store time series, functions tailored for `xts` objects also make processing them easy. For example, subsetting is time-aware.
+
+```{r}
+# get data from 2018
+head(msft_xts["2018"])
+```
+
+```{r}
+# get data from last week of the series
+last(msft_xts, "1 week")
+```
+
+```{r}
+# get data for last day
+last(msft_xts, 1)
+```
+
+```{r}
+# get data for all Monday in 2019
+msft_xts[.indexyear(msft_xts) == (2019 - 1900) & .indexwday(msft_xts) == 1]
+```
+
+There are many more ways to manipulate `xts` object (subset, merge, get lead & lag). Explore them on your own. Here is a good start, https://rpubs.com/mohammadshadan/288218.
+
+### 3.2. Finance packages that work well with `xts`
+
+Let's first see if `auto.arima()` in the `forecast` package works on xts?
+
+```{r}
+birth_xts %>%
+  auto.arima(approximation = FALSE) %>%
+  forecast(h = 36) %>%
+  autoplot()
+```
+
+It looks like it works. However, why is the x-axis numbers, not dates? (Discussion here)
+
+Many finance packages work well with `xts`. For example, `PerformanceAnalytics` is the go-to package for performance and risk analysis of financial instruments or portfolios. It understand `xts`.
+
+Let's calculate annual returns for Microsoft stocks.
+
+```{r}
+library(PerformanceAnalytics)
+
+# calculate annual returns
+
+# step 1. convert OHLC (Open, High, Low, Close) to annual frequency
+msft_yearly <- to.yearly(msft_xts) 
+print(msft_yearly)
+
+```
+
+```{r}
+# step 2. calculate annual return using annual close price
+msft_annual_return <- CalculateReturns(msft_yearly$msft_xts.Close)
+msft_annual_return
+```
+
+Let's try one more exercise. Calculate portfolio returns. (This time, We will use `quantmod` package to load Microsoft and Apple stock data from Yahoo finance.)
+
+```{r}
+library(quantmod)
+
+# get data. Both are xts objects
+aapl <- getSymbols("AAPL", from = "2015-12-31", to = "2018-12-31", auto.assign = FALSE)
+msft <- getSymbols("MSFT", from = "2015-12-31", to = "2018-12-31", auto.assign = FALSE)
+```
+
+getSymbols() loads data into an `xts` object.
+
+```{r}
+# aapl is an xts object
+class(aapl)
+```
+
+
+```{r}
+# combine aapl and msft close price as my portfolio price
+my_portfolio <- cbind(aapl$AAPL.Close, msft$MSFT.Close)
+colnames(my_portfolio) <- c("aapl", "msft")
+head(my_portfolio)
+```
+
+
+
+```{r}
+# calcuate daily return
+return_daily <- Return.calculate(my_portfolio)
+return_daily <- return_daily[-1, ] # remove the first row (NA)
+head(return_daily)
+```
+
+```{r}
+# initial weights of my portfolio
+init_weights <- c(0.5, 0.5)
+
+# buy and hold
+pf_bh <- Return.portfolio(return_daily, weights = init_weights, verbose = TRUE)
+
+# rebalancing quaterly
+pf_rebal <- Return.portfolio(return_daily, weights = init_weights, rebalance_on = "weeks", verbose = TRUE)
+
+# plot daily returns for both strategies
+par(mfrow = c(2, 1), mar = c(2, 4, 2, 2))
+plot(pf_bh$returns)
+plot(pf_rebal$returns)
+```
+
+```{r}
+# plot end of period values for each assets and for both strategies
+par(mfrow = c(2, 1), mar = c(2, 4, 2, 2))
+plot(pf_bh$EOP.Value)
+plot(pf_rebal$EOP.Value)
+```
+
+`PerformanceAnalytics` package can certain do a lot more (https://github.com/braverock/PerformanceAnalytics). Explore it more on your own.
+
+## 4. dataframe/tibble with time series
+
+As the [`tidyverse` eco-system](https://www.tidyverse.org/) becomes more and more popular. Developers start to bridge the gap between the traditional time series world and the `tidyverse` world. See the links below for a few examples.
+
+1. [tissible](https://tsibble.tidyverts.org/): a new time series class (`tbl_ts`) built on `tibble`.
+2. [fable](https://fable.tidyverts.org/): an extension of `forecast` package to work with `tissible`
+3. [tidyquant](https://business-science.github.io/tidyquant/): "integrates the best resources for collecting and analyzing financial data, `zoo`, `xts`, `quantmod`, `TTR`, and `PerformanceAnalytics`, with the tidy data infrastructure of the `tidyverse`, allowing for seamless interaction between each."
+
+[txbox](https://docs.ropensci.org/tsbox/) provides conversion between many time series data structures, an attempt to unite time series data structure in R.
+
+## 5. a few more R finance packages
+
+We have seen `forecast`, `quantmod`, and `PerformanceAnalytics` packages so far. Refer to R [taskview](https://cran.r-project.org/web/views/), in particular, [finance taskview](https://cran.r-project.org/web/views/Finance.html) and [time series taskview](https://cran.r-project.org/web/views/TimeSeries.html) for an overview on what R has to offer for financial analysis. Below are a brief intro to `quantmod` and `RQuantLib` packages.
+
+### 5.1 quantmod
+
+[quantmod](http://www.quantmod.com/) is an R package designed to assist quantitative traders in "development, testing, and deployment of statistically based trading models." We will take a quick look at it.
+
+```{r, warning = FALSE}
+library(quantmod)
+
+# get MSFT OHLC data from yahoo
+getSymbols("MSFT", src="yahoo")
+
+# display a few row of MSFT dataset
+head(MSFT)
+```
+
+```{r}
+# check its data structure
+str(MSFT)
+```
+
+
+```{r}
+# plot using the build-in chartSeries() function
+chartSeries(MSFT, theme = chartTheme("white"), subset = "last 6 months")
+
+# add MACD plot, https://en.wikipedia.org/wiki/MACD
+addMACD()
+
+# add Bollinger bands, https://en.wikipedia.org/wiki/Bollinger_Bands
+addBBands()
+```
+
+```{r}
+# plot the weekly return using plot() function, open price
+plot(weeklyReturn(MSFT['2018-01::', 'MSFT.Open']), main = "MSFT Weekly Return (Open Price)")
+```
+
+`weeklyReturn(MSFT['2018-01::'])` returns an `xts` object, `ggplot()` can handle it too.
+
+```{r}
+# plot the weekly returns using ggplot()
+library(ggplot2)
+ggplot(weeklyReturn(MSFT['2018-01::', 'MSFT.Open']), aes(x = Index, y = weekly.returns)) + 
+  geom_line()
+```
+
+### 5.2 RQuantLib
+
+[QuantLib](https://www.quantlib.org/) is a comprehensive free/open-source library for quantitative finance. [RQuantLib](http://dirk.eddelbuettel.com/code/rquantlib.html) makes part of QuantLib accessible from R (i.e. RQuantLib is an R interface to QuantLib). It provides many functions for option pricing and fixed income. It also provides a few utility functions (such as `isHoliday()`, `isWeekend()`, etc.).
+
+Let's try a few functions in `RQuantLib` package.
+
+```{r}
+library(RQuantLib)
+
+# European Option pricing based on BS formula
+# EuropeanOption(type, underlying, strike, dividendYield, 
+#                riskFreeRate, maturity, volatility, discreteDividends, 
+#                discreteDividendsTimeUntil)
+EO <- EuropeanOption("call", 100, 100, 0.01, 0.03, 0.5, 0.4)
+EO
+```
+
+```{r}
+# calculate European Option Implied Volatility
+# EuropeanOptionImpliedVolatility(type, value, underlying, strike, dividendYield, 
+#                                 riskFreeRate, maturity, volatility)
+# note: the volatility argument is the Initial guess for the volatility of the underlying stock
+EOImpVol <- EuropeanOptionImpliedVolatility("call", value=EO$value+0.50, 100, 100, 0.01, 0.03, 0.5, 0.4)
+EOImpVol
+```
+
+```{r}
+isHoliday(calendar = "Canada", dates = as.Date("2019-07-01"))
+```
+
+```{r}
+isHoliday(calendar = "UnitedStates", dates = as.Date("2019-07-01"))
+```
+
+
+## References
+
+1. [Using R for Time Series Analysis](https://a-little-book-of-r-for-time-series.readthedocs.io/en/latest/src/timeseries.html) from [a Little Book of R for Time Series](https://a-little-book-of-r-for-time-series.readthedocs.io/en/latest/index.html).
+
+2. [Forecasting: Principles and Practice 2nd Ed](https://otexts.com/fpp2/) (uses the [forecast](https://pkg.robjhyndman.com/forecast/) package)
+
+3. [Forecasting: Principles and Practice 3nd Ed](https://otexts.com/fpp3/) (uses the [fable](http://fable.tidyverts.org/) package)
+
+4. Daniel Lee's [Financial Modeling](https://rpubs.com/DanielSLee/IntroPortfolioAnalysis)

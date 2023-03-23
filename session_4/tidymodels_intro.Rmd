@@ -1,0 +1,307 @@
+---
+title: "Quick Intro to TidyModels"
+author: "Jay Cao"
+date: "03/20/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Intro
+
+Some of you are currently working on industry projects involving R and machine learning models. The new Tidymodels framework could be an additional useful concept to know for your projects. This notebook will give you a quick intro to Tidymodels.
+
+So far, we have learned data wrangling using the Tidyverse eco-system. Tidymodels is to modeling what Tidyverse is to data wrangling. Tidymodels itself doesn't implement any statistical or machine learning models. It's a framework to organize all the tasks around modeling.
+
+> The tidymodels framework is a collection of packages for modeling and machine learning using tidyverse principles.
+>
+> -[Tidymodels Developers](https://www.tidymodels.org/)
+
+Below are a few core tidymodels packages.
+
+* [tidymodels](https://www.tidymodels.org/): a meta-package that installs and load all tidymodels core packages.
+* [rsample](https://rsample.tidymodels.org/): handles data splitting (e.g. for training, validation and testing) and resampling (e.g. for bootstrapping).
+* [parsnip](https://parsnip.tidymodels.org/): a unified interface to different underlying R modeling packages
+* [recipes](https://recipes.tidymodels.org/): an interface to data pre-processing (i.e. feature engineering)
+* [workflows](https://workflows.tidymodels.org/): bundles pre-processing, modeling and post-processing together
+* [tune](https://tune.tidymodels.org/): helps with hyper-parameter tuning
+* [yardstick](https://yardstick.tidymodels.org/): measures model performance
+
+This notebook will introduce you Tidymodels through an example. The workflow in this example closely follows the [case study](https://www.tidymodels.org/start/case-study/) in the official Tidymodels *Get Started* document. However, we will use a different dataset.
+
+
+## Predictive Modeling with Tidymodels
+
+### Import Data
+
+We will use the [German Credit Data](https://archive.ics.uci.edu/ml/datasets/statlog+(german+credit+data)) for this exercise. The goal is to classify customers as good or bad credit risk based on their attributes.
+
+Let's first load some R packages.
+```{r, message=FALSE}
+library(tidyverse)
+library(tidymodels)
+
+library(glmnet)     # for logistic regression
+library(ranger)     # for random forest
+library(vip)        # for variable importance plots
+```
+
+Now let's import the data. Note that the data file is not in csv format. The data are space-separated. In addition, the data file doesn't contain column names, and most of the values are encoded too. Click the dataset link above to get more information on the data.
+
+```{r, message=FALSE, collapse=TRUE}
+data_url <- "http://archive.ics.uci.edu/ml/machine-learning-databases/statlog/german/german.data"
+
+# the data file doesn't contain column names so add them
+col_names <- c("chk_acct", "duration", "credit_his", 
+               "purpose", "amount", "saving_acct",
+               "present_emp", "installment_rate",
+               "sex", "other_debtor", "present_resid",
+               "property", "age", "other_install",
+               "housing", "n_credits", "job",
+               "n_people", "telephone", "foreign",
+               "response")
+
+german_credit <- read_delim(data_url, " ", col_names = col_names) %>%
+  mutate_if(is.character, as.factor) %>%     # turn all character cols to factors/categorical variables
+  mutate(response = as_factor(response - 1)) %>%     # 0: good credit; 1: bad credit
+  mutate(response = fct_relevel(response, c("1", "0")))     # reorder factor level so 1/bad will be the "event"
+
+# take a look at the data
+glimpse(german_credit)
+
+```
+
+### Split Data
+
+Let's split the data for training, validation, and testing. The `response` variable is slightly imbalanced, so we use stratified random sample. This is done with the help of Tidymodels **rsample** package.
+
+```{r, collapse=TRUE}
+# the response variable is slightly imbalanced
+german_credit %>% 
+  count(response) %>%
+  mutate(prop = n/sum(n))
+
+# set random seed for reproducibility
+set.seed(123)
+
+# use stratified random sample
+# test and non-test split
+splits <- initial_split(german_credit, strata = response)
+splits
+
+# retrieving data from the split data
+credit_other <- training(splits)
+credit_test  <- testing(splits)
+
+# training and validation split on non-test data
+val_set <- validation_split(credit_other, 
+                            strata = response, 
+                            prop = 0.80)
+val_set
+```
+
+### Logistic Regression
+
+We first build a penalized logistic regression model. We will use [lasso](https://en.wikipedia.org/wiki/Lasso_(statistics)) here.
+
+Given a model such as logistic regression, Tidymodels **parsnip** package provides a unified interface (e.g. `logistic_reg()` and `set_engine()`) to different underlying modeling functions (e.g. `glmnet`, `keras` or `spark`). This is a huge advantage. Worry no more about syntax for different models from different R modeling packages.
+
+Tidymodels **recipe** helps with pre-process data (e.g. `step_dummy`).
+
+Tidymodels **workflows** bundles pre-processing and modeling.
+
+```{r}
+# build model
+# note that the hyper-parameter penalty will be tuned
+lr_mod <- 
+  logistic_reg(penalty = tune(), mixture = 1) %>%     # mixture = 1 means pure lasso
+  set_engine("glmnet")     # use the glmnet
+
+# pre-process data
+lr_recipe <- 
+  recipe(response ~ ., data = credit_other) %>%     # response will be y/outcome
+  step_dummy(all_nominal(), -all_outcomes()) %>%    # create dummies for all nominal vars excluding outcome var
+  step_normalize(all_predictors())     # normalize (center and scale) all predictors
+
+# combine modeling and data pre-processing
+lr_workflow <- 
+  workflow() %>% 
+  add_model(lr_mod) %>% 
+  add_recipe(lr_recipe)
+```
+
+We can start to tune and train the model. We first create a grid for tuning the `penalty` hyper-parameter. We then train the model using each grid value. We use "Area under the ROC Curve" to measure model performance over the validation set, so we plot the ROC AUC measure over `penalty` grid. We then select the best model. These are all done with the help of Tidymodels **tune** package.
+
+```{r}
+# create a grid for tuning the penalty hyper-parameter
+lr_reg_grid <- tibble(penalty = 10^seq(-4, -1, length.out = 30))
+
+# train using a grid of penalty values
+lr_res <- 
+  lr_workflow %>% 
+  tune_grid(val_set,
+            grid = lr_reg_grid,
+            control = control_grid(save_pred = TRUE),
+            metrics = metric_set(roc_auc))
+
+# plot ROC AUC against penalty grid
+lr_plot <- 
+  lr_res %>% 
+  collect_metrics() %>% 
+  ggplot(aes(x = penalty, y = mean)) + 
+  geom_point() + 
+  geom_line() + 
+  ylab("Area under the ROC Curve") +
+  scale_x_log10(labels = scales::label_number())
+
+lr_plot
+```
+
+We then select the best model.
+```{r, collapse=TRUE}
+# take a look at top models first
+lr_res %>% 
+  show_best("roc_auc", n = 5)
+
+# pick the top one
+lr_best <- 
+  lr_res %>% 
+  select_best(metric = "roc_auc")
+lr_best
+```
+
+We plot the ROC for the best model we obtained from the lasso logistic regression.
+```{r}
+lr_auc <- 
+  lr_res %>% 
+  collect_predictions(parameters = lr_best) %>%     # collect pred on val data under the best model
+  roc_curve(response, .pred_1) %>% 
+  mutate(model = "Logistic Regression")
+
+autoplot(lr_auc)
+```
+
+### Random Forest
+
+We do almost exact the same thing as we did in the logistic regression except now we use random forest model.
+
+```{r, message=FALSE, collapse=TRUE}
+# random forest will be trained in parallel on multiple cores
+# get the number of cores my computer has 
+cores <- parallel::detectCores()
+
+# build a random forest model
+# two hyper-parameters will be tuned
+rf_mod <- 
+  rand_forest(mtry = tune(), min_n = tune(), trees = 30) %>% 
+  set_engine("ranger", num.threads = cores) %>%     # use ranger pacakge for training
+  set_mode("classification")
+
+# not much data pre-process for random forest model (just specify the model)
+rf_recipe <- recipe(response ~ ., data = credit_other)
+
+# combine model and data-process
+rf_workflow <- 
+  workflow() %>% 
+  add_model(rf_mod) %>% 
+  add_recipe(rf_recipe)
+
+# train and tune on validation data
+# auto-create tuning grid with 25 set of values
+set.seed(345)
+rf_res <- 
+  rf_workflow %>% 
+  tune_grid(val_set,
+            grid = 25,
+            control = control_grid(save_pred = TRUE),
+            metrics = metric_set(roc_auc))
+
+# take a look at a few top models
+rf_res %>% 
+  show_best(metric = "roc_auc")
+
+# select the best one
+rf_best <- 
+  rf_res %>% 
+  select_best(metric = "roc_auc")
+rf_best
+```
+
+We see the bests model has a ROC AUC of `r (rf_res %>% show_best(metric = "roc_auc"))[[1, "mean"]] %>% round(digits=3) %>% format(nsmall = 3)`.
+
+Plot the ROC curve together with the one obtained from the best logistic lasso model.
+```{r}
+rf_auc <- 
+  rf_res %>% 
+  collect_predictions(parameters = rf_best) %>% # collect pred on val data under the best model
+  roc_curve(response, .pred_1) %>% 
+  mutate(model = "Random Forest")
+
+# combine the ROC from the best random forest model with the one from logistic lasso
+bind_rows(rf_auc, lr_auc) %>% 
+  ggplot(aes(x = 1 - specificity, y = sensitivity, col = model)) + 
+  geom_path(lwd = 1.5, alpha = 0.8) +
+  geom_abline(lty = 3) + 
+  coord_equal() + 
+  scale_color_viridis_d(option = "plasma", end = .6)
+```
+
+### The Last Fit
+
+We see the best logistic lasso and random forest have similar performance. We will fit a final model,
+
+1. using random forest with the best hyper-parameters obtained;
+2. using all non-test data, i.e., combining the training and validation data. (We do this because our dataset is quite small.)
+
+```{r, collapse=TRUE}
+# the last model
+# mtry and min_n are obtained from inspecting the best random forest model above 
+last_rf_mod <- 
+  rand_forest(mtry = 13, min_n = 37, trees = 30) %>%     # hard code for now 
+  set_engine("ranger", num.threads = cores, importance = "impurity") %>% 
+  set_mode("classification")
+
+# the last workflow
+last_rf_workflow <- 
+  rf_workflow %>% 
+  update_model(last_rf_mod)
+
+# the last fit
+# note: we train on non-test data, 
+# i.e., we combine previous training and validation data
+set.seed(345)
+last_rf_fit <- 
+  last_rf_workflow %>% 
+  last_fit(splits)
+
+# collect performance metric on test data
+last_rf_fit %>% 
+  collect_metrics()
+```
+
+We see the model performance (ROC AUC) on test data is similar to the one we obtained on validation data (`r (last_rf_fit %>% collect_metrics())[[2, ".estimate"]] %>% round(digits = 3) %>% format(nsmall = 3)` vs `r (rf_res %>% show_best(metric = "roc_auc"))[[1, "mean"]] %>% round(digits = 3) %>% format(nsmall = 3)`). That means our estimate to the model performance generalizes to unseen data.
+
+However, our model accuracy is just `r (last_rf_fit %>% collect_metrics())[[1, ".estimate"]] %>% round(digits = 3) %>% format(nsmall = 3)`. That's not too impressive. If we naively guess all responses are 0 (good credit). We will get about 0.7 accuracy (given 70% of the data has 0 responses).
+
+Anyway, keep in mind that this notebook is for introducing you Tidymodels. We haven't carefully explored data and different models yet, so the OK performance is acceptable.
+
+Let's plot the feature importance graph.
+```{r}
+# obtain importance score
+last_rf_fit %>% 
+  pluck(".workflow", 1) %>%   
+  extract_fit_parsnip() %>% 
+  vip(num_features = 20)
+```
+
+Let's plot the final ROC curve too.
+```{r}
+# plot ROC plot
+last_rf_fit %>% 
+  collect_predictions() %>% 
+  roc_curve(response, .pred_1) %>% 
+  autoplot()
+```
+
